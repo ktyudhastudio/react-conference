@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import LeaveButton from "@components/common/LeaveButton";
 import MeetingFooter from "@components/common/MeetingFooter";
+import VideoQualityButton from "@components/common/VideoQualityButton";
 import MeetingInfo from "@components/common/MeetingInfo";
 import ModeToggle from "@components/common/ModeToggle";
 import VideoTile from "@components/common/VideoTile";
@@ -41,8 +42,13 @@ function gridCols(n: number) {
 
 function RoomContent({ meetingId, userId }: Props) {
   const navigate = useNavigate();
-  const { camera, mic, videoDeviceId, audioDeviceId } =
-    useGlobalStore.getState();
+  const {
+    camera,
+    mic,
+    videoDeviceId,
+    audioDeviceId,
+    videoQuality: storedQuality,
+  } = useGlobalStore.getState();
 
   const {
     participants,
@@ -60,11 +66,19 @@ function RoomContent({ meetingId, userId }: Props) {
     flipCamera,
     cameraCount,
     facing,
+    videoQuality,
+    setVideoQuality,
     sendChat,
   } = useConference({
     meetingId,
     userId,
-    initialMedia: { camera, mic, videoDeviceId, audioDeviceId },
+    initialMedia: {
+      camera,
+      mic,
+      videoDeviceId,
+      audioDeviceId,
+      videoQuality: storedQuality,
+    },
     onCommand: (action) => {
       if (action === "mute_mic") toast.info("An admin muted your microphone");
       if (action === "camera_off")
@@ -229,6 +243,10 @@ function RoomContent({ meetingId, userId }: Props) {
           }
           right={
             <>
+              <VideoQualityButton
+                value={videoQuality}
+                onChange={setVideoQuality}
+              />
               <ModeToggle className="hidden size-9 sm:inline-flex" />
               <Button
                 size="icon-lg"

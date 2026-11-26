@@ -9,6 +9,12 @@ import type {
 import { decodeSdp, encodeSdp } from "@helpers/sdp";
 import { wsUrl } from "@helpers/ws";
 import { iceServersNow, loadIceServers } from "@helpers/ice";
+import {
+  CAPTURE_VIDEO,
+  DEFAULT_VIDEO_QUALITY,
+  VIDEO_QUALITIES,
+  type VideoQualityId,
+} from "@constants/videoQuality";
 
 interface Options {
   meetingId: string;
@@ -21,6 +27,7 @@ interface Options {
     mic: boolean;
     videoDeviceId?: string;
     audioDeviceId?: string;
+    videoQuality?: VideoQualityId;
   };
   /** Perintah admin untuk peserta ini. */
   onCommand?: (action: "mute_mic" | "camera_off" | "kick") => void;
@@ -107,6 +114,10 @@ export default function useConference({
   const [cameraCount, setCameraCount] = useState(0);
   const [facing, setFacing] = useState<"user" | "environment">("user");
   const [busy, setBusy] = useState(false);
+  const [videoQuality, setVideoQualityState] = useState<VideoQualityId>(
+    initialMedia?.videoQuality ?? DEFAULT_VIDEO_QUALITY,
+  );
+  const qualityRef = useRef(videoQuality);
   const [publishStatus, setPublishStatus] = useState<PeerStatus | null>(null);
   const [remote, setRemote] = useState<Record<string, RemotePeer>>({});
   const [error, setError] = useState<string | null>(null);
@@ -134,6 +145,35 @@ export default function useConference({
   // iceServersNow() sudah terisi (di-prefetch) sebelum newPc dipanggil
   const newPc = () =>
     new RTCPeerConnection({ iceServers: iceServersNow() ?? [] });
+
+  /** Batasi bitrate/resolusi/fps video kiriman sesuai preset (aman dipanggil kapan saja). */
+  const applyQuality = useCallback(async () => {
+    const sender = videoSender.current;
+    if (!sender) return;
+    const q = VIDEO_QUALITIES[qualityRef.current];
+    try {
+      const params = sender.getParameters();
+      if (!params.encodings?.length) params.encodings = [{}];
+      const h = sender.track?.getSettings().height;
+      params.encodings[0].maxBitrate = q.maxBitrate;
+      params.encodings[0].maxFramerate = q.maxFramerate;
+      params.encodings[0].scaleResolutionDownBy = h
+        ? Math.max(1, h / q.height)
+        : 1;
+      await sender.setParameters(params);
+    } catch (e) {
+      console.warn("[conference] apply video quality failed", e);
+    }
+  }, []);
+
+  const setVideoQuality = useCallback(
+    (id: VideoQualityId) => {
+      qualityRef.current = id;
+      setVideoQualityState(id);
+      void applyQuality();
+    },
+    [applyQuality],
+  );
 
   const negotiate = useCallback(
     async (pc: RTCPeerConnection, peerId: string, isSender: boolean) => {
@@ -258,13 +298,14 @@ export default function useConference({
 
     try {
       await negotiate(pc, "", true);
+      await applyQuality();
     } catch (e) {
       console.warn("[conference] publish: signaling failed", e);
       if (pubPc.current !== pc) return;
       setError(e instanceof Error ? e.message : "Failed to publish");
       retry();
     }
-  }, [closePublisher, negotiate]);
+  }, [closePublisher, negotiate, applyQuality]);
 
   const stopTrack = (ref: { current: MediaStreamTrack | null }) => {
     ref.current?.stop();
@@ -275,9 +316,12 @@ export default function useConference({
     async (on: boolean) => {
       if (on) {
         const gm = await navigator.mediaDevices.getUserMedia({
-          video: deviceIds.current.video
-            ? { deviceId: { exact: deviceIds.current.video } }
-            : true,
+          video: {
+            ...CAPTURE_VIDEO,
+            ...(deviceIds.current.video
+              ? { deviceId: { exact: deviceIds.current.video } }
+              : {}),
+          },
         });
         const track = gm.getVideoTracks()[0];
         track.onended = () => void setCamera(false);
@@ -288,6 +332,7 @@ export default function useConference({
             : "user",
         );
         await videoSender.current?.replaceTrack(track);
+        await applyQuality();
         setLocalStream(new MediaStream([track]));
       } else {
         stopTrack(camTrack);
@@ -298,7 +343,7 @@ export default function useConference({
       }
       reportMedia();
     },
-    [reportMedia],
+    [reportMedia, applyQuality],
   );
 
   /** Ganti kamera (depan/belakang di ponsel; kamera berikutnya di desktop). */
@@ -333,7 +378,9 @@ export default function useConference({
     for (const video of candidates) {
       try {
         track = (
-          await navigator.mediaDevices.getUserMedia({ video })
+          await navigator.mediaDevices.getUserMedia({
+            video: { ...CAPTURE_VIDEO, ...video },
+          })
         ).getVideoTracks()[0];
         break;
       } catch {
@@ -356,8 +403,9 @@ export default function useConference({
     if (settings.deviceId) deviceIds.current.video = settings.deviceId;
     setFacing(settings.facingMode === "environment" ? "environment" : "user");
     await videoSender.current?.replaceTrack(track);
+    await applyQuality();
     setLocalStream(new MediaStream([track]));
-  }, []);
+  }, [applyQuality]);
 
   const setMic = useCallback(
     async (on: boolean) => {
@@ -703,5 +751,7 @@ export default function useConference({
     flipCamera,
     cameraCount,
     facing,
+    videoQuality,
+    setVideoQuality,
   };
 }

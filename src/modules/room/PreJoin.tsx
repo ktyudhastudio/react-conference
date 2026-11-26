@@ -7,6 +7,10 @@ import SheetSelect from "@components/common/SheetSelect";
 import VideoTile from "@components/common/VideoTile";
 import useGlobalStore from "@store/useStore";
 import { randomId } from "@helpers/id";
+import {
+  VIDEO_QUALITY_OPTIONS,
+  type VideoQualityId,
+} from "@constants/videoQuality";
 
 interface Props {
   meetingId: string;
@@ -24,6 +28,7 @@ export default function PreJoin({ meetingId, onJoin }: Props) {
     mic,
     videoDeviceId,
     audioDeviceId,
+    videoQuality,
     setMedia,
   } = useGlobalStore();
   const [name, setName] = useState(userId || randomId());
@@ -172,6 +177,12 @@ export default function PreJoin({ meetingId, onJoin }: Props) {
                 label: label(d, i),
               })),
             ]}
+          />
+          <SheetSelect
+            title="Video quality"
+            value={videoQuality}
+            onChange={(v) => setMedia({ videoQuality: v as VideoQualityId })}
+            options={VIDEO_QUALITY_OPTIONS}
           />
         </div>
       </div>
