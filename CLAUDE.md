@@ -54,3 +54,6 @@ Didefinisikan di **dua tempat**: `vite.config.ts` dan `tsconfig.app.json`. Kompo
 
 ## Menambah fitur
 1. `services/<area>/<fitur>/{hooks,interfaces}` 2. `modules/<area>/<fitur>/` 3. `pages/<area>/` + export di `index.ts` 4. route di `routes/_<area>.routes.tsx` (daftarkan di `index.routes.tsx`) 5. slice store bila perlu 6. `npm run build && npm run lint`.
+
+## ICE / TURN
+Klien mengambil STUN+TURN dari `GET /webrtc/ice` (`src/helpers/ice.ts`, di-cache 30 menit; gagal → STUN saja). TURN dikonfigurasi di go-conference (Cloudflare Realtime TURN), bukan di sini.
