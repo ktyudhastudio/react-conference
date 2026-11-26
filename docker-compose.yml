@@ -10,4 +10,4 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
-      - "${WEB_PORT:-8081}:80"
+      - "${VITE_APP_PORT:-8081}:80"

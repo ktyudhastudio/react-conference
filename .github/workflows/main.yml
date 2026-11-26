@@ -16,7 +16,8 @@ jobs:
     env:
       VITE_APP_ENV: production
       VITE_APP_NAME: ${{ secrets.VITE_APP_NAME }}
-      VITE_SITE_URL: ${{ secrets.VITE_SITE_URL }}
+      VITE_APP_URL: ${{ secrets.VITE_APP_URL }}
+      VITE_API_URL: ${{ secrets.VITE_API_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -38,7 +39,7 @@ jobs:
     runs-on: [self-hosted, docker]
     env:
       DOCKER_HOST: ssh://${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}
-      WEB_PORT: ${{ secrets.WEB_PORT }}
+      VITE_APP_PORT: ${{ secrets.VITE_APP_PORT }}
       API_UPSTREAM: ${{ secrets.API_UPSTREAM }}
     steps:
       - uses: actions/checkout@v4
