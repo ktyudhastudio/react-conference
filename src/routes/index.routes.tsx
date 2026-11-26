@@ -8,8 +8,13 @@ import adminRoutes from "./_admin.routes";
 const router = createBrowserRouter([
   {
     element: <DefaultLayout />,
-    children: [{ index: true, element: <Home /> }, ...roomRoutes, ...adminRoutes, { path: "*", element: <NotFound /> }],
+    children: [
+      { index: true, element: <Home /> },
+      { path: "*", element: <NotFound /> },
+    ],
   },
+  ...roomRoutes,
+  ...adminRoutes,
 ]);
 
 export default router;

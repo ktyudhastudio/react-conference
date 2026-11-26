@@ -1,0 +1,13 @@
+name: react-conference
+
+services:
+  web:
+    build: .
+    restart: unless-stopped
+    environment:
+      # alamat go-conference dari dalam container (host server yang sama)
+      API_UPSTREAM: ${API_UPSTREAM:-http://host.docker.internal:2992}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "${VITE_APP_PORT:-8081}:80"

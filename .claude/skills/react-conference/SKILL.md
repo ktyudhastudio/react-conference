@@ -18,4 +18,4 @@ Baca `CLAUDE.md` untuk konvensi. Urutan kerja:
 6. **Store** — slice di `store/slices/<nama>.slice.ts`, gabungkan di `store/useStore.ts`.
 7. Verifikasi: `npm run build && npm run lint` (tidak ada test runner). Lalu `npm run dev` bersama `make run` di go-conference untuk uji nyata.
 
-Aturan: alias import, `import type`, tanpa `enum`, teks UI Bahasa Indonesia, `.env` hanya dibaca di `constants/config.ts`.
+Aturan: alias import, `import type`, tanpa `enum`, UI text in English, `.env` hanya dibaca di `constants/config.ts`.
