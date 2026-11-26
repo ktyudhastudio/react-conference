@@ -29,6 +29,9 @@ interface Props {
   userId: string;
 }
 
+const FIT_MAX = 4; // sampai segini tile mengisi tinggi; lebih → grid 16:9 yang bisa di-scroll
+const FIT = "aspect-auto h-full min-h-0";
+
 function gridCols(n: number) {
   if (n <= 1) return "grid-cols-1 max-w-3xl";
   if (n <= 2) return "grid-cols-1 sm:grid-cols-2";
@@ -100,6 +103,7 @@ function RoomContent({ meetingId, userId }: Props) {
   const self = participants.find((p) => p.userId === userId);
   // 1 lawan bicara: video lawan besar + self-view kecil (seperti Meet)
   const pipMode = others.length === 1;
+  const fit = 1 + others.length <= FIT_MAX;
 
   const copyInvite = async () => {
     try {
@@ -145,11 +149,13 @@ function RoomContent({ meetingId, userId }: Props) {
               />
             </>
           ) : (
-            <div className="flex w-full flex-col items-center gap-4">
+            <div className="flex h-full w-full flex-col items-center gap-3">
               <div
                 className={cn(
                   "grid w-full content-center gap-3",
                   gridCols(1 + others.length),
+                  // sedikit peserta: tile mengisi tinggi area (tidak melewati layar, mis. landscape)
+                  fit && "min-h-0 flex-1 auto-rows-fr",
                 )}
               >
                 <VideoTile
@@ -161,11 +167,12 @@ function RoomContent({ meetingId, userId }: Props) {
                   quality={self?.quality}
                   mirror={facing === "user"}
                   label={`${userId} (You)`}
+                  className={fit ? FIT : undefined}
                 />
-                {others.map((p) => tileOf(p))}
+                {others.map((p) => tileOf(p, fit ? FIT : undefined))}
               </div>
               {others.length === 0 && (
-                <div className="flex animate-in flex-col items-center gap-2 text-center duration-500 fade-in-0 slide-in-from-bottom-2">
+                <div className="flex shrink-0 animate-in flex-col items-center gap-2 text-center duration-500 fade-in-0 slide-in-from-bottom-2 [@media(max-height:480px)]:hidden">
                   <p className="text-sm text-muted-foreground">
                     You&apos;re the only one here. Invite someone to join.
                   </p>
