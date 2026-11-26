@@ -18,7 +18,7 @@ npx shadcn@latest add <komponen>   # tambah komponen ke src/components/ui
 Tidak ada test runner; verifikasi dengan `npm run build` dan `npm run lint`.
 
 ## Environment
-Salin `.env.example` → `.env`. Semua `VITE_*`, dibaca **hanya** lewat `src/constants/config.ts`. `VITE_BASE_API_URL` kosong = pakai proxy Vite. Jangan commit `.env`.
+Salin `.env.example` → `.env`. Semua `VITE_*`, dibaca **hanya** lewat `src/constants/config.ts`. `VITE_API_URL` kosong = pakai proxy Vite. Jangan commit `.env`.
 
 ## Struktur `src/`
 | Folder | Isi |
@@ -41,7 +41,7 @@ Didefinisikan di **dua tempat**: `vite.config.ts` dan `tsconfig.app.json`. Kompo
 - `verbatimModuleSyntax`: tipe wajib `import type`. `erasableSyntaxOnly`: tanpa `enum`/`namespace`/parameter property (pakai `as const`).
 - `noUnusedLocals/Parameters` aktif.
 - Nama: komponen `PascalCase.tsx`, hook `useXxx.ts`, service/interface `kebab-case`.
-- Double quotes + semicolon. Teks UI & pesan error dalam Bahasa Indonesia.
+- Double quotes + semicolon. UI text & error messages in English.
 - **UI: pakai komponen shadcn dulu** (`components/ui`); style dengan token (`bg-background`, `text-muted-foreground`, …) dan `cn()` dari `@/lib/utils`. Jangan buat CSS terpisah kecuali perlu.
 - Hook mutasi mengembalikan `{ response, error }` tanpa throw; error ≥500 → "Server error".
 
@@ -49,7 +49,8 @@ Didefinisikan di **dua tempat**: `vite.config.ts` dan `tsconfig.app.json`. Kompo
 - Endpoint: `POST /webrtc/sdp/m/:meetingId/c/:userId/p/:peerId/s/:isSender` (`isSender=true` publish; false = subscribe ke `peerId`).
 - Body/response `{ "Sdp": base64(JSON SessionDescription) }` → `helpers/sdp.ts`.
 - Signaling non-trickle: tunggu ICE gathering selesai sebelum kirim offer (lihat `hooks/useConference.ts`).
-- Hanya video VP8. Auth belum ada (tahap coba-coba).
+- Presence lewat WebSocket `/ws/m/:meetingId` (`hooks/useConference.ts`): join = buka socket; kamera/mic dilaporkan via `{"type":"media"}`; subscribe otomatis ke peserta `publishing`. Publisher selalu mengirim video+audio; saat kamera/mic mati dipakai track pengganti (`replaceTrack`) agar tanpa renegosiasi.
+- Video VP8 + audio Opus. Auth belum ada (tahap coba-coba).
 
 ## Menambah fitur
 1. `services/<area>/<fitur>/{hooks,interfaces}` 2. `modules/<area>/<fitur>/` 3. `pages/<area>/` + export di `index.ts` 4. route di `routes/_<area>.routes.tsx` (daftarkan di `index.routes.tsx`) 5. slice store bila perlu 6. `npm run build && npm run lint`.

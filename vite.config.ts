@@ -2,16 +2,18 @@ import basicSsl from "@vitejs/plugin-basic-ssl";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
   // `npm run dev:https` → HTTPS self-signed agar kamera jalan lewat IP jaringan
   plugins: [react(), tailwindcss(), ...(mode === "https" ? [basicSsl()] : [])],
   server: {
-    // signaling ke go-conference (GOLANG_PORT=8080)
+    port: Number(loadEnv(mode, process.cwd(), "VITE_").VITE_APP_PORT) || 5173,
+    // signaling ke go-conference (APP_PORT=8080)
     proxy: {
       "/webrtc": { target: "http://localhost:8080", changeOrigin: true },
+      "/ws": { target: "ws://localhost:8080", ws: true, changeOrigin: true },
     },
   },
   resolve: {

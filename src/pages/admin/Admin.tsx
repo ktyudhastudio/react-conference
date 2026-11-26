@@ -1,8 +1,15 @@
 import { useParams } from "react-router-dom";
+import useDocumentTitle from "@hooks/useDocumentTitle";
+import AdminDashboard from "@modules/admin/AdminDashboard";
 import AdminView from "@modules/admin/AdminView";
-import { DEFAULT_MEETING_ID } from "@constants/meeting";
 
+/** /admin = daftar rapat aktif; /admin/:meetingId = layar pemantauan penuh. */
 export default function Admin() {
-  const { meetingId = DEFAULT_MEETING_ID } = useParams();
-  return <AdminView key={meetingId} meetingId={meetingId} />;
+  const { meetingId } = useParams();
+  useDocumentTitle(meetingId ? `Monitor ${meetingId}` : "Admin");
+  return meetingId ? (
+    <AdminView key={meetingId} meetingId={meetingId} />
+  ) : (
+    <AdminDashboard />
+  );
 }

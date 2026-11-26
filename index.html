@@ -1,12 +1,68 @@
 <!doctype html>
-<html lang="id">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- Icons & PWA -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Conference</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#171717" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
+
+    <!-- SEO -->
+    <title>Meets – Video meetings for everyone</title>
+    <meta
+      name="description"
+      content="Start a video meeting in one click, share the code, and talk face to face. No downloads, works in your browser on desktop and mobile."
+    />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="%VITE_APP_URL%/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Meets" />
+    <meta property="og:title" content="Meets – Video meetings for everyone" />
+    <meta
+      property="og:description"
+      content="Start a video meeting in one click, share the code, and talk face to face."
+    />
+    <meta property="og:url" content="%VITE_APP_URL%/" />
+    <meta property="og:image" content="%VITE_APP_URL%/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Meets – Video meetings for everyone" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Meets – Video meetings for everyone" />
+    <meta
+      name="twitter:description"
+      content="Start a video meeting in one click, share the code, and talk face to face."
+    />
+    <meta name="twitter:image" content="%VITE_APP_URL%/og-image.png" />
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Meets",
+        "description": "Browser-based video meetings: start a meeting, share the code, and talk face to face.",
+        "applicationCategory": "CommunicationApplication",
+        "operatingSystem": "Any",
+        "url": "%VITE_APP_URL%/",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
   </head>
   <body>
+    <noscript>Meets needs JavaScript to run video meetings. Please enable JavaScript and reload.</noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

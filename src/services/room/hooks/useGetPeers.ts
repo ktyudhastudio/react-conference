@@ -9,10 +9,14 @@ export default function useGetPeers(meetingId: string, refreshInterval = 3000) {
       .get(url)
       .then((res) => res.data);
 
-  const { data, error } = useSWR(meetingId ? `/webrtc/m/${meetingId}/peers` : null, fetcher, {
-    refreshInterval,
-    keepPreviousData: true,
-  });
+  const { data, error } = useSWR(
+    meetingId ? `/webrtc/m/${meetingId}/peers` : null,
+    fetcher,
+    {
+      refreshInterval,
+      keepPreviousData: true,
+    },
+  );
 
   return { peers: data?.peers ?? [], loading: !data && !error, error };
 }

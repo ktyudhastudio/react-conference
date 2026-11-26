@@ -1,0 +1,5 @@
+# Meeting rooms and the admin area are private/dynamic: keep them out of search results.
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /room/
