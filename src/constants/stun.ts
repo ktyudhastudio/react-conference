@@ -1,1 +1,1 @@
-export const STUN_SERVERS = ["stun:stun.l.google.com:19302"] as const;
+export const STUN_SERVERS = ["stun:stun.cloudflare.com:3478"] as const;
