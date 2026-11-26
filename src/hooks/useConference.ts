@@ -8,7 +8,7 @@ import type {
 } from "@services/room/interfaces/participants.type";
 import { decodeSdp, encodeSdp } from "@helpers/sdp";
 import { wsUrl } from "@helpers/ws";
-import getIceServers from "@services/room/hooks/getIceServers";
+import { iceServersNow, loadIceServers } from "@helpers/ice";
 
 interface Options {
   meetingId: string;
@@ -131,8 +131,9 @@ export default function useConference({
   const setCameraRef = useRef<(on: boolean) => Promise<void>>(async () => {});
   const setMicRef = useRef<(on: boolean) => Promise<void>>(async () => {});
 
-  const newPc = async () =>
-    new RTCPeerConnection({ iceServers: await getIceServers() });
+  // iceServersNow() sudah terisi (di-prefetch) sebelum newPc dipanggil
+  const newPc = () =>
+    new RTCPeerConnection({ iceServers: iceServersNow() ?? [] });
 
   const negotiate = useCallback(
     async (pc: RTCPeerConnection, peerId: string, isSender: boolean) => {
@@ -201,10 +202,14 @@ export default function useConference({
   }, []);
 
   const startPublisher = useCallback(async () => {
+    if (!iceServersNow()) {
+      await loadIceServers();
+      if (!alive.current) return;
+    }
     closePublisher();
     placeholders.current ??= createPlaceholders();
     const ph = placeholders.current;
-    const pc = await newPc();
+    const pc = newPc();
     pubPc.current = pc;
     setPublishStatus(pubRetries.current > 0 ? "reconnecting" : "connecting");
 
@@ -448,8 +453,12 @@ export default function useConference({
 
   const connectSub = useCallback(
     async (peerId: string, sub: Sub) => {
+      if (!iceServersNow()) {
+        await loadIceServers();
+        if (sub.closed) return;
+      }
       sub.pc?.close();
-      const pc = await newPc();
+      const pc = newPc();
       sub.pc = pc;
       pc.addTransceiver("video", { direction: "recvonly" });
       pc.addTransceiver("audio", { direction: "recvonly" });
