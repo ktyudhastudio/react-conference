@@ -1,0 +1,54 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# deploy antre satu-satu; run PR tidak boleh menggeser antrean deploy
+concurrency: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.ref) || 'deploy' }}
+
+jobs:
+  # menghasilkan dist/ saja (juga jadi pengecekan di PR)
+  build:
+    runs-on: ubuntu-latest
+    env:
+      VITE_APP_ENV: production
+      VITE_APP_NAME: ${{ secrets.VITE_APP_NAME }}
+      VITE_SITE_URL: ${{ secrets.VITE_SITE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 1
+
+  # dist dibungkus nginx dan dijalankan di server tujuan lewat Docker-over-SSH
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: [self-hosted, docker]
+    env:
+      DOCKER_HOST: ssh://${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}
+      WEB_PORT: ${{ secrets.WEB_PORT }}
+      API_UPSTREAM: ${{ secrets.API_UPSTREAM }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - uses: ./.github/actions/ssh
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+      - run: docker compose up -d --build
+      - run: docker image prune -f

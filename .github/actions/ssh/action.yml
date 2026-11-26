@@ -1,0 +1,24 @@
+name: ssh
+description: Muat SSH key dan percayai host tujuan
+inputs:
+  host:
+    required: true
+  key:
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        HOST: ${{ inputs.host }}
+        KEY: ${{ inputs.key }}
+      run: |
+        [ -n "$HOST" ] || { echo "::error::DEPLOY_HOST kosong (cek Secrets/Variables di repo ini)"; exit 1; }
+        [ -n "$KEY" ] || { echo "::error::Secret DEPLOY_SSH_KEY kosong"; exit 1; }
+    - uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ inputs.key }}
+    - shell: bash
+      env:
+        HOST: ${{ inputs.host }}
+      run: ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts
